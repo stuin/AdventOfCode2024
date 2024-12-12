@@ -16,6 +16,7 @@ fun main(args: Array<String>) {
     val timeSource = TimeSource.Monotonic
     val startTime = timeSource.markNow()
 
+    //Simulate 1 stone over 25 blinks
     fun simulate25(start: Long): List<Long> {
         var iteration = listOf(start)
         (1..25).forEach { _ ->
@@ -32,48 +33,53 @@ fun main(args: Array<String>) {
         return iteration
     }
 
-    var finished = 0
 
+    //Map of what 1 stone becomes after 25 blinks
     val skips: MutableMap<Long?,List<Long>> = mutableMapOf()
     iteration1.forEach { skips[it] = simulate25(it) }
 
+    //Use map to get entire list for blink 25
     val iteration2 = iteration1.mapNotNull { skips[it] }.flatten()
     println(iteration2.size)
-    //blink 25 done
 
+    //Update map with new stone numbers
     var todo = iteration2.toSet().filter { !skips.contains(it) }
     println(todo.size)
     todo.forEach { skips[it] = simulate25(it) }
     println(skips.size)
     println(skips.maxOf { it.value.size })
 
+    //Any known stones at blink 50 can skip straight to final count at blink 75
+    //No need to store them
+    var finished = 0
     val final1 = iteration2.parallelStream().map { first->
         //println("${finished++}/${iteration.size}")
         skips[first]?.filter { skips[it] != null }?.sumOf { skips[it]?.size?.toLong() ?: 0 } ?: 0
     }.toList().filterNotNull().sum()
     println(final1)
 
+    //List remaining unknown stones for blink 50
     finished = 0
     val iteration3 = iteration2.parallelStream().map { first->
         //println("${finished++}/${iteration.size}")
         skips[first]?.filter { skips[it] == null }
     }.toList().filterNotNull().flatten()
     println(iteration3.size)
-    //blink 50 done
 
+    //Update map with new stone numbers
     todo = iteration3.toSet().filter { !skips.contains(it) }
     println(todo.size)
     todo.forEach { skips[it] = simulate25(it) }
     println(skips.size)
     println(skips.maxOf { it.value.size })
 
+    //Count up remaining stones at blink 75
     finished = 0
     val final2 = iteration3.parallelStream().map {
         //println("${finished++}/${iteration.size}")
         skips[it]?.size?.toLong() ?: 0
     }.toList().filterNotNull().sum()
     println(final1 + final2)
-    //blink 75 done 26803144528360 2624640240 238317474993392
 
     val endTime = timeSource.markNow()
     println(endTime-startTime)

@@ -12,6 +12,7 @@ fun main(args: Array<String>) {
     val updates = lines.drop(lines.indexOfFirst { it == "" }+1).map { it.split(",").map { x -> x.toInt()} }
     println(updates)
 
+    //For each update, find if it breaks any rules
     val correct = updates.filter { pages ->
         rules.none { rule ->
             pages.containsAll(rule) && pages.indexOf(rule[0]) > pages.indexOf(rule[1])
@@ -23,6 +24,7 @@ fun main(args: Array<String>) {
     val incorrect = updates - correct.toSet()
     println(incorrect)
 
+    //For each incorrect update, iterate through corrections
     val corrected = incorrect.map { pages ->
         val corrections: MutableList<Int> = mutableListOf()
         pages.forEach { page ->

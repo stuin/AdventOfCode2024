@@ -1,7 +1,6 @@
 package Event5_AOC
 
 import java.io.File
-import java.time.Instant
 import kotlin.math.pow
 import kotlin.time.TimeSource
 
@@ -26,36 +25,18 @@ fun main(args: Array<String>) {
     println(answers)
     println(values)
 
-    val example = listOf<Long>(3, 2, 9, 4, 8, 6, 796, 23, 8, 5, 3, 9)
-    var permutation1 = 0
-    /*while(permutation1 < 3.0.pow(example.size)) {
-        permutation1 += 2
-
-        print(example.reduceIndexed { index, acc, i ->
-            when(permutation1.getDigit(index, 3)) {
-                0 -> acc + i
-                1 -> acc * i
-                2 -> (acc.toString() + i.toString()).toLong()
-                else -> acc
-            }
-        })
-        print(" ")
-        example.reduceIndexed {index, acc, l ->
-            print(permutation1.getDigit(index, 3))
-            acc
-        }
-        println()
-    }
-    println()*/
-
     val timeSource = TimeSource.Monotonic
     val startTime = timeSource.markNow()
 
+    //Check each line
+    //Runs in parallel
     println(answers.zip(values).parallelStream().filter { test ->
         var output: Long = test.second.sum()
         var permutation = 0
+        //Brute force every combination
         while(output != test.first && permutation < 3.0.pow(test.second.size)) {
             permutation++
+            //Use base 2 or 3 to track each combination of operators
             output = test.second.reduceIndexed { index, acc, i ->
                 when(permutation.getDigit(index, 3)) {
                     0 -> acc + i

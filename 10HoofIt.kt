@@ -13,6 +13,7 @@ fun main(args: Array<String>) {
 
     val edge = Pair(lines[0].size, lines.size)
 
+    //List all zeros by coordinate
     val zeros = lines.mapIndexed { y, s ->
         s.mapIndexed { x, c ->
             if(c == 0)
@@ -23,18 +24,21 @@ fun main(args: Array<String>) {
     }.flatten()
     println(zeros)
 
+    //Recursive following trail function
     fun recursiveCheck(point: Pair<Int,Int>, level: Int): List<Pair<Int,Int>> {
         if(level == 10)
             return listOf(point)
         return point.sideNeighbors().filter { edge.contains(it) && lines[it.second][it.first] == level }.flatMap { recursiveCheck(it, level+1) }
     }
 
+    //Follow all zeros to end, remove duplicate ends
     val trailheads1 = zeros.map { head->
        recursiveCheck(head, 1).toSet()
     }.map { it.size }
     println(trailheads1)
     println(trailheads1.sum())
 
+    //Follow all zeros to end
     val trailheads2 = zeros.map { head->
         recursiveCheck(head, 1)
     }.map { it.size }

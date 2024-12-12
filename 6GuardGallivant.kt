@@ -13,13 +13,6 @@ operator fun Pair<Int,Int>.plus(point: Pair<Int,Int>): Pair<Int,Int> {
     return Pair(this.first+point.first, this.second+point.second)
 }
 
-val rotate = mapOf(
-    Pair(Pair(0, -1), Pair(1, 0)),
-    Pair(Pair(1, 0), Pair(0, 1)),
-    Pair(Pair(0, 1), Pair(-1, 0)),
-    Pair(Pair(-1, 0), Pair(0, -1)),
-)
-
 fun main(args: Array<String>) {
     val reader = File(args[0])
     val lines = reader.readLines()
@@ -32,11 +25,20 @@ fun main(args: Array<String>) {
 
     val edge = Pair(lines[0].length, lines.size)
 
+    //Map of clockwise rotations
+    val rotate = mapOf(
+        Pair(Pair(0, -1), Pair(1, 0)),
+        Pair(Pair(1, 0), Pair(0, 1)),
+        Pair(Pair(0, 1), Pair(-1, 0)),
+        Pair(Pair(-1, 0), Pair(0, -1)),
+    )
+
     var current = start
     var movement = Pair(0, -1)
     val path = mutableListOf(current)
-    var filled = lines.map { it.toMutableList() }
+    val filled = lines.map { it.toMutableList() }
 
+    //List obstacles as points
     val obstacles = lines.mapIndexed { y: Int, s: String ->
         s.mapIndexed { x, c ->
             if(c == '#')
@@ -47,6 +49,7 @@ fun main(args: Array<String>) {
     }.flatten()
     println(obstacles)
 
+    //Iteratively move to edge
     while(edge.contains(current + movement)) {
         filled[current.second][current.first] = 'X'
 
@@ -62,27 +65,33 @@ fun main(args: Array<String>) {
     filled.forEach { println(it.joinToString("")) }
     println("Original")
 
+    //Part one answer
     println(path.size)
 
     val timeSource = TimeSource.Monotonic
     val startTime = timeSource.markNow()
 
+    //Try every point in original path
+    //Runs in parallel
     println(path.parallelStream().map { added ->
         val obstacles2 = obstacles+added
         var current = start
         var movement = Pair(0, -1)
-        var filled = lines.map { it.toMutableList() }
+        val filled = lines.map { it.toMutableList() }
         filled[added.second][added.first] = 'O'
         val history = mutableListOf<Pair<Pair<Int,Int>,Pair<Int,Int>>>()
 
+        //Iterate until it reaches an edge or history indicates a loop
         while(edge.contains(current + movement) && !history.contains(Pair(current,movement))) {
             history.add(Pair(current,movement))
             filled[current.second][current.first] = 'X'
 
+            //Allow two rotations in one
             if(obstacles2.contains(current + movement))
                 movement = rotate[movement]!!
             if(obstacles2.contains(current + movement))
                 movement = rotate[movement]!!
+
             current += movement
             filled[current.second][current.first] = '@'
         }

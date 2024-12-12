@@ -26,9 +26,11 @@ fun main(args: Array<String>) {
 
     val edge = Pair(lines[0].length, lines.size)
 
+    //List out all frequency names
     val frequencies = lines.flatMap { it.toSet() }.toSet().filter { it != '.' }
     println(frequencies)
 
+    //List out antenna points by frequency
     val antenna = frequencies.map { f ->
         lines.mapIndexed { y: Int, s: String ->
             s.mapIndexed { x, c ->
@@ -44,20 +46,24 @@ fun main(args: Array<String>) {
     val timeSource = TimeSource.Monotonic
     val startTime = timeSource.markNow()
 
+    //List out all combinations of 2 antenna in each frequency
     val combinations = antenna.map { it.pairCombinations() }
     println(combinations)
 
+    //Find all antinodes for each pair
     val antinodes = combinations.map { f->
         f.map { positions->
             val difference = positions.second-positions.first
             val found = mutableListOf(positions.first, positions.second)
 
+            //Iterate backwards along linear steps
             var back = positions.first-difference
             while(edge.contains(back)) {
                 found += back
                 back -= difference
             }
 
+            //Iterate forwards along linear steps
             var forward = positions.second+difference
             while(edge.contains(forward)) {
                 found += forward
