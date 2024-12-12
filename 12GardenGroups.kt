@@ -46,15 +46,13 @@ fun main(args: Array<String>) {
     println(types.zip(plants).map { groups-> listOf(groups.first) + groups.second.map { it.size } })
 
     val price = plants.flatten().map { group->
-        val outside = group.map { it.sideNeighbors() }.flatten().filter { !group.contains(it) }
-        val long1 = outside.filter { outside.contains(it+Pair(-1,0)) || outside.contains(it+Pair(0,-1)) }
-        val long = long1.toSet().flatMap { u-> Array(ceil(outside.count {it==u}/2.0).toInt(), {u}).toList() }
-        val ladel = outside.toSet().filter { u-> outside.count { it==u } == 3 }.filter { u-> u.sideNeighbors().count { long.contains(it) }>0 }
-        listOf(types.indexOf(lines[group[0].second][group[0].first]), group.size, outside.size, long.size, ladel.size, outside.size-long.size+ladel.size)
+        val outside = Pair(0,0).sideNeighbors().map { side -> group.map { it+side }.filter { !group.contains(it) } }
+        val long = outside.sumOf { side-> side.count { side.contains(it+Pair(-1,0)) || side.contains(it+Pair(0,-1)) } }
+        listOf(types.indexOf(lines[group[0].second][group[0].first]), group.size, outside.flatten().size, long, outside.flatten().size-long)
     }
     println(price.map { it.mapIndexed { index, i -> if(index == 0) types[i] else i } })
     println(price.sumOf { it[1]*it[2] })
-    println(price.sumOf { it[1]*it[5] })
+    println(price.sumOf { it[1]*it[4] })
 
     val endTime = timeSource.markNow() //1005072
     println(endTime-startTime)
