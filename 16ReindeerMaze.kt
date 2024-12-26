@@ -45,10 +45,10 @@ fun main(args: Array<String>) {
     //Point, parent Point, (f,g)
     val open = mutableListOf(mutableListOf(start, start, Pair(0, 0)))
     val closed: MutableList<MutableList<Pair<Int,Int>>> = mutableListOf()
-    var final: MutableList<Pair<Int,Int>>? = null
+    var finals: MutableList<List<Pair<Int,Int>>> = mutableListOf()
 
     while(open.isNotEmpty()) {
-        val q = open.minBy { it[2].first }
+        val q = open.minBy { it[2].second }
         val diff = q[0] - q[1]
         open.remove(q)
         closed.add(q)
@@ -61,35 +61,45 @@ fun main(args: Array<String>) {
         }
 
         //Check if finished
-        if(successors.any { it[0] == end }) {
-            final = successors.first { it[0] == end }
-            println("Found end")
-            break
-        }
+        if(successors.any { it[0] == end })
+            finals.add(successors.first { it[0] == end })
 
         //Do not record worse paths to a previous location
         open.addAll(successors.filter { node->
             !open.any { node[0] == it[0] && node[2].first >= it[2].first } &&
                     !closed.any { node[0] == it[0] && node[2].first >= it[2].first }
         })
-        println(open)
+        //println(open)
         //println(closed)
         //println()
     }
+    closed.forEach {
+        val s = "000" + it[2].second.toString()
+        filled[it[0].second][it[0].first] = s[s.length-4]
+    }
 
-    //Trace final best path
-    if(final != null) {
-        var backtrack: MutableList<Pair<Int,Int>> = final
-        while(backtrack[0] != start) {
-            backtrack = closed.first { it[0] == backtrack[1] }
-            filled[backtrack[0].second][backtrack[0].first] = 'O'
-            //println(backtrack)
+    //Trace final best paths
+    if(finals.isNotEmpty()) {
+        var max = finals.minOf { it[2].second }
+        var max2 = finals.minOf { it[2].second }
+        var backtracks: List<List<Pair<Int,Int>>> = finals.filter { it[2].second == max }
+        println("$max: ${backtracks.size}")
+        while(!backtracks.any { it[0] == start }) {
+            backtracks = backtracks.flatMap { backtrack->
+                closed.filter {
+                    it[0].sideNeighbors().contains(backtrack[0]) &&
+                            it[2].first<=backtrack[2].first && it[2].second <= max
+                }.also { filled[backtrack[0].second][backtrack[0].first] = 'O' }
+            }.toSet().toList()
+            max = max2
+            max2 = backtracks.maxOf { it[2].second }
+            println(backtracks)
         }
     }
 
     filled.forEach { println(it.joinToString("")) }
     println()
-    println(final)
+    println(finals)
 
     val endTime = timeSource.markNow()
     println(endTime-startTime)
